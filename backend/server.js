@@ -12,13 +12,14 @@ dotenv.config();
 
 const app = express();
 
- const allowedOrigins = [
+const allowedOrigins = ['https://room-managemtn.vercel.app'];
 
-          'https://room-managemtn.vercel.app/'
-      ]
-
-// Allow ALL origins (for testing)
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // Only if using cookies/auth headers
+  })
+);
 app.use(express.json());
 
 // Database Connection
