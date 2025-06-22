@@ -17,14 +17,8 @@ const app = express();
           'https://room-managemtn.vercel.app/'
       ]
 
-app.use(
-          cors({
-            origin: allowedOrigins,
-            credentials: true,
-            allowedHeaders: ["Content-Type", "Authorization"],
-            methods: ["GET", "POST", "PUT", "DELETE"],
-          })
-        );
+// Allow ALL origins (for testing)
+app.use(cors());
 app.use(express.json());
 
 // Database Connection
