@@ -36,10 +36,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/professors', professorRoutes);
 
-// Test endpoint
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend is working!' });
-});
+app.get('/', (req, res) => res.send('API is running'));
 
 // Error handling
 app.use(errorHandler);
