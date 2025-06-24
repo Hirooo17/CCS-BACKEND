@@ -82,46 +82,92 @@ export const createBooking = async (req, res) => {
       .populate('room', 'roomNumber floor');
 
     // Emit booking and room updates
+    // Emit booking and room updates
     const io = req.app.get('io');
-    io.emit('bookingCreated', populatedBooking);
-    io.emit('roomsUpdated', await Room.find().populate('currentUser', 'name department'));
-    console.log('Socket.IO events emitted');
+    if (!io) {
+      console.error('Socket.IO not initialized');
+    } else {
+      io.emit('bookingCreated', populatedBooking);
+      io.emit('roomsUpdated', await Room.find().populate('currentUser', 'name department'));
+      console.log('Socket.IO events emitted');
+    }
 
     // Send push notifications to other professors
-    const webPush = req.app.get('webPush');
-    console.log(webPush)
-    const subscriptions = await NotificationSubscription.find({
-      userId: { $ne: professorId }, // Exclude the booking professor
-    });
-
-    const notificationPayload = {
-      title: `New Booking: Room ${room.roomNumber}`,
-      body: `Booked by ${professor.name} for ${purpose}`,
-      icon: 'icon/icon-192.png', // Ensure this icon exists in your frontend's public folder
-    };
-
-    const promises = subscriptions.map(({ subscription }) => {
-      return webPush
-        .sendNotification(subscription, JSON.stringify(notificationPayload))
-        .catch(async (error) => {
-          console.error('Error sending push notification:', error);
-          if (error.statusCode === 410) {
-            // Remove invalid subscription
-            await NotificationSubscription.deleteOne({ 'subscription.endpoint': subscription.endpoint });
-          }
+    try {
+      const webPush = req.app.get('webPush');
+      if (!webPush) {
+        console.error('webPush not initialized');
+        return res.status(201).json({
+          message: 'Room booked successfully, but push notifications failed',
+          booking: populatedBooking,
         });
-    });
+      }
 
-    await Promise.all(promises);
+      const subscriptions = await NotificationSubscription.find({
+        userId: { $ne: professorId },
+      });
+      console.log('Found subscriptions:', subscriptions.length);
+
+      if (subscriptions.length === 0) {
+        console.log('No subscriptions found for notifications');
+      } else {
+        // Validate subscriptions
+        const validSubscriptions = subscriptions.filter(({ subscription }) => {
+          const isValid =
+            subscription &&
+            subscription.endpoint &&
+            subscription.keys &&
+            subscription.keys.p256dh &&
+            subscription.keys.auth;
+          if (!isValid) {
+            console.log('Invalid subscription found:', subscription);
+          }
+          return isValid;
+        });
+
+        console.log('Valid subscriptions:', validSubscriptions.length);
+
+        if (validSubscriptions.length > 0) {
+          const notificationPayload = {
+            title: `New Booking: Room ${room.roomNumber}`,
+            body: `Booked by ${professor.name || 'Unknown'} for ${purpose || 'Unknown purpose'}`,
+            icon: '/icon-192.png',
+          };
+
+          console.log('Notification payload:', notificationPayload);
+
+          const promises = validSubscriptions.map(({ subscription }) => {
+            console.log('Sending notification to:', subscription.endpoint);
+            return webPush
+              .sendNotification(subscription, JSON.stringify(notificationPayload))
+              .catch(async (error) => {
+                console.error('Error sending push notification:', error, 'Endpoint:', subscription.endpoint);
+                if (error.statusCode === 410) {
+                  console.log('Removing invalid subscription:', subscription.endpoint);
+                  await NotificationSubscription.deleteOne({ 'subscription.endpoint': subscription.endpoint });
+                }
+                return null;
+              });
+          });
+
+          await Promise.all(promises);
+          console.log('All notifications processed');
+        }
+      }
+    } catch (notificationError) {
+      console.error('Push notification error (continuing execution):', notificationError);
+    }
 
     res.status(201).json({
       message: 'Room booked successfully',
-      booking: populatedBooking
+      booking: populatedBooking,
     });
   } catch (error) {
+    console.error('Create booking error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 export const getActiveBookings = async (req, res) => {
   try {
