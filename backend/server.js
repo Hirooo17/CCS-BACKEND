@@ -9,10 +9,25 @@ import professorRoutes from './routes/professorRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import { Server } from 'socket.io'; // Import Socket.IO
 import http from 'http'; // Import HTTP for creating server
+import webPush from 'web-push'
+import notifrouter from './routes/notificationRoutes.js';
 
 
 dotenv.config();
 const app = express();
+
+const vapidKeys = webPush.generateVAPIDKeys();
+export const PublicKey = vapidKeys.publicKey
+const PrivateKey = vapidKeys.privateKey
+console.log("Public Key:", PublicKey);
+console.log("Private Key:", PrivateKey);
+
+// Configure web-push
+webPush.setVapidDetails(
+  'retuerma.h.bscs@gmail.com', // Replace with your contact email
+  PublicKey,
+  PrivateKey
+);
 
 const server = http.createServer(app)
 const io = new Server(server, {
@@ -66,13 +81,17 @@ io.on('connection', (socket) => {
   });
 });
 
+//app seters
 app.set('io', io);
+// Pass webPush to routes
+app.set('webPush', webPush);
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/professors', professorRoutes);
+app.use('/api/notifications', notifrouter)
 
 // Test endpoint
 app.get('/api/test', (req, res) => {

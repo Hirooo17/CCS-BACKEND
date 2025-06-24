@@ -1,4 +1,5 @@
 import Booking from '../models/Booking.js';
+import NotificationSubscription from '../models/NotificationSubscription.js';
 import Room from '../models/Rooms.js';
 import User from '../models/Users.js';
 
@@ -78,6 +79,32 @@ export const createBooking = async (req, res) => {
     const io = req.app.get('io');
     io.emit('bookingCreated', populatedBooking);
     io.emit('roomsUpdated', await Room.find().populate('currentUser', 'name department'));
+
+    // Send push notifications to other professors
+    const webPush = req.app.get('webPush');
+    const subscriptions = await NotificationSubscription.find({
+      userId: { $ne: professorId }, // Exclude the booking professor
+    });
+
+    const notificationPayload = {
+      title: `New Booking: Room ${room.roomNumber}`,
+      body: `Booked by ${professor.name} for ${purpose}`,
+      icon: 'icon/icon-192.png', // Ensure this icon exists in your frontend's public folder
+    };
+
+    const promises = subscriptions.map(({ subscription }) => {
+      return webPush
+        .sendNotification(subscription, JSON.stringify(notificationPayload))
+        .catch(async (error) => {
+          console.error('Error sending push notification:', error);
+          if (error.statusCode === 410) {
+            // Remove invalid subscription
+            await NotificationSubscription.deleteOne({ 'subscription.endpoint': subscription.endpoint });
+          }
+        });
+    });
+
+    await Promise.all(promises);
 
     res.status(201).json({
       message: 'Room booked successfully',
