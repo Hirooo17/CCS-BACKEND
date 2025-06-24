@@ -1,6 +1,6 @@
 import express from 'express';
 import NotificationSubscription from '../models/NotificationSubscription.js';
-import { PublicKey } from '../server.js';
+
 
 const notifrouter = express.Router();
 
