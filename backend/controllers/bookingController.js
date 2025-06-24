@@ -158,6 +158,8 @@ export const createBooking = async (req, res) => {
       console.error('Push notification error (continuing execution):', notificationError);
     }
 
+    // Final response
+    console.log('Sending response for booking:', booking._id);
     res.status(201).json({
       message: 'Room booked successfully',
       booking: populatedBooking,
@@ -166,6 +168,7 @@ export const createBooking = async (req, res) => {
     console.error('Create booking error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+  
 };
 
 
