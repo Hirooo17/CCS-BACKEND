@@ -18,7 +18,8 @@ const app = express();
 
 // const vapidKeys = webPush.generateVAPIDKeys();
 // export const PublicKey = vapidKeys.publicKey
-const PrivateKey = vapidKeys.privateKey
+// const PrivateKey = vapidKeys.privateKey
+
 console.log("Public Key:", process.env.VAPID_PUBLIC_KEY);
 console.log("Private Key:", process.env.VAPID_PRIVATE_KEY);
 
