@@ -50,7 +50,6 @@ export const getRoomHistory = async (req, res) => {
 
 export const initializeRooms = async (req, res) => {
   try {
-    // First delete all existing rooms
     await Room.deleteMany({});
     console.log('Existing rooms deleted');
 
@@ -70,8 +69,14 @@ export const initializeRooms = async (req, res) => {
     }
 
     await Room.insertMany(rooms);
+
+    // Emit rooms update
+    const io = req.app.get('io');
+    io.emit('roomsUpdated', rooms);
+
     res.json({ message: 'Rooms reinitialized successfully', count: rooms.length });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+

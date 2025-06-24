@@ -74,6 +74,11 @@ export const createBooking = async (req, res) => {
       .populate('professor')
       .populate('room', 'roomNumber floor');
 
+    // Emit booking and room updates
+    const io = req.app.get('io');
+    io.emit('bookingCreated', populatedBooking);
+    io.emit('roomsUpdated', await Room.find().populate('currentUser', 'name department'));
+
     res.status(201).json({
       message: 'Room booked successfully',
       booking: populatedBooking
@@ -175,6 +180,16 @@ export const endBooking = async (req, res) => {
       currentRoom: null
     });
 
+    // Emit booking and room updates
+    const io = req.app.get('io');
+    io.emit('bookingEnded', { bookingId });
+    io.emit('roomsUpdated', await Room.find().populate('currentUser', 'name department'));
+    io.emit('professorsUpdated', {
+      id: userId,
+      currentStatus: 'Available',
+      currentRoom: null
+    });
+
     res.json({ 
       message: 'Booking ended successfully',
       duration: duration
@@ -212,6 +227,16 @@ export const forceEndBooking = async (req, res) => {
     });
 
     await User.findByIdAndUpdate(booking.professor, {
+      currentStatus: 'Available',
+      currentRoom: null
+    });
+
+    // Emit booking and room updates
+    const io = req.app.get('io');
+    io.emit('bookingEnded', { bookingId });
+    io.emit('roomsUpdated', await Room.find().populate('currentUser', 'name department'));
+    io.emit('professorsUpdated', {
+      id: booking.professor,
       currentStatus: 'Available',
       currentRoom: null
     });

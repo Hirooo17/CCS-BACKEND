@@ -18,6 +18,15 @@ export const updateProfessorStatus = async (req, res) => {
 
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
     
+    // Emit professor status update
+    const io = req.app.get('io');
+    io.emit('professorsUpdated', {
+      id: user._id,
+      name: user.name,
+      currentStatus: user.currentStatus,
+      currentRoom: user.currentRoom
+    });
+
     res.json({
       message: 'Status updated successfully',
       user: {
