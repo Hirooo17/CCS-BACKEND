@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: ['https://room-managemtn.vercel.app'], // Adjust to your frontend URL
+    origin: ['https://room-managemtn.vercel.app/'], // Adjust to your frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
