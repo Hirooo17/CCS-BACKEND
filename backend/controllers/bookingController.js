@@ -51,6 +51,12 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Room is already booked for this time' });
     }
 
+    // Fetch professor details for notification
+    const professor = await User.findById(professorId);
+    if (!professor) {
+      return res.status(404).json({ message: 'Professor not found' });
+    }
+
     const booking = new Booking({
       professor: professorId,
       room: roomId,
