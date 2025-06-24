@@ -25,7 +25,8 @@ notifrouter.post('/subscribe', async (req, res) => {
 
 // Get VAPID public key
 notifrouter.get('/vapid-public-key', (req, res) => {
-  res.status(200).json({ publicKey: PublicKey });
+  res.status(200).json({ publicKey: process.env.VAPID_PUBLIC_KEY, });
+
 });
 
 export default notifrouter;

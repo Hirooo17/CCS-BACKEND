@@ -16,17 +16,17 @@ import notifrouter from './routes/notificationRoutes.js';
 dotenv.config();
 const app = express();
 
-const vapidKeys = webPush.generateVAPIDKeys();
-export const PublicKey = vapidKeys.publicKey
+// const vapidKeys = webPush.generateVAPIDKeys();
+// export const PublicKey = vapidKeys.publicKey
 const PrivateKey = vapidKeys.privateKey
-console.log("Public Key:", PublicKey);
-console.log("Private Key:", PrivateKey);
+console.log("Public Key:", process.env.VAPID_PUBLIC_KEY);
+console.log("Private Key:", process.env.VAPID_PRIVATE_KEY);
 
-// Configure web-push
+//Configure web-push
 webPush.setVapidDetails(
-  'retuerma.h.bscs@gmail.com', // Replace with your contact email
-  PublicKey,
-  PrivateKey
+  'mailto:retuerma.h.bscs@gmail.com', // Replace with your contact email
+process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
 );
 
 const server = http.createServer(app)
