@@ -42,16 +42,30 @@ app.use(express.json());
 // Database Connection
 connectDB();
 
+// Socket.IO Authentication Middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (token) {
+    try {
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      socket.user = decoded;
+      return next();
+    } catch (err) {
+      console.error('Socket.IO auth error:', err.message);
+      return next(new Error('Invalid token'));
+    }
+  }
+  next(new Error('Authentication required'));
+});
+
 // Socket.IO Connection Handling
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-
+  console.log('A user connected:', socket.id, socket.user?.email);
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
 });
 
-// Make io available to routes
 app.set('io', io);
 
 // Routes
