@@ -85,9 +85,11 @@ export const createBooking = async (req, res) => {
     const io = req.app.get('io');
     io.emit('bookingCreated', populatedBooking);
     io.emit('roomsUpdated', await Room.find().populate('currentUser', 'name department'));
+    console.log('Socket.IO events emitted');
 
     // Send push notifications to other professors
     const webPush = req.app.get('webPush');
+    console.log(webPush)
     const subscriptions = await NotificationSubscription.find({
       userId: { $ne: professorId }, // Exclude the booking professor
     });
