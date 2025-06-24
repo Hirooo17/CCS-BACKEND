@@ -131,7 +131,7 @@ export const createBooking = async (req, res) => {
           const notificationPayload = {
             title: `New Booking: Room ${room.roomNumber}`,
             body: `Booked by ${professor.name || 'Unknown'} for ${purpose || 'Unknown purpose'}`,
-            icon: '/icon-192.png',
+            icon: '/icon/icon-192.png',
           };
 
           console.log('Notification payload:', notificationPayload);
