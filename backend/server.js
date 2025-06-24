@@ -12,7 +12,7 @@ import http from 'http'; // Import HTTP for creating server
 
 
 dotenv.config();
-
+const app = express();
 
 const server = http.createServer(app)
 const io = new Server(server, {
@@ -23,7 +23,7 @@ const io = new Server(server, {
   },
 })
 
-const app = express();
+
  const allowedOrigins = [
 
           'https://room-managemtn.vercel.app/'
